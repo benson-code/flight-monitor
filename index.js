@@ -1,8 +1,12 @@
 const axios = require('axios');
 const cron = require('node-cron');
 const express = require('express');
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
+
+// 提供靜態文件服務
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 允許跨域請求 (CORS)
 app.use((req, res, next) => { res.header("Access-Control-Allow-Origin", "*"); next(); });
@@ -89,5 +93,13 @@ app.get('/api/flights', async (req, res) => {
   }
 });
 
+// 主頁面路由
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // 啟動 Express server
-app.listen(port, () => console.log(`API server listening at http://localhost:${port}`));
+app.listen(port, () => {
+  console.log(`伺服器已啟動：http://localhost:${port}`);
+  console.log(`API 端點：http://localhost:${port}/api/flights`);
+});
