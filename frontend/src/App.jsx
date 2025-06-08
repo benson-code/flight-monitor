@@ -14,8 +14,13 @@ function App() {
     setError('');
     setLastFetchTime(new Date().toLocaleString());
     try {
-      const res = await axios.get('http://localhost:3000/api/flights');
-      setFlights(res.data.results);
+      const res = await axios.get('https://api.aviationstack.com/v1/flights', {
+        params: {
+          access_key: 'c0b127d00f929b9052609cdeded794e1',
+          flight_status: 'active'
+        }
+      });
+      setFlights(res.data.data || []);
     } catch (err) {
       setError(`錯誤：${err.message}`);
     } finally {
@@ -42,30 +47,29 @@ function App() {
             <table className="flight-table">
               <thead>
                 <tr>
-                  <th>航線</th>
-                  <th>當前票數</th>
-                  <th>變化</th>
-                  <th>更新時間</th>
+                  <th>航班號</th>
+                  <th>出發地</th>
+                  <th>目的地</th>
+                  <th>狀態</th>
+                  <th>預計起飛</th>
+                  <th>預計到達</th>
                 </tr>
               </thead>
               <tbody>
-                {flights.map(({ origin, destination, count, prev, delta, timestamp }, idx) => (
-                  <tr key={idx}>
-                    <td>{origin}→{destination}</td>
-                    <td>{count}</td>
-                    <td className={delta < 0 ? 'decrease' : 'increase'}>
-                      {delta < 0 ? '↓' : '↑'} {Math.abs(delta)}
-                    </td>
-                    <td>{timestamp ? new Date(timestamp).toLocaleString('zh-TW', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    }) : ''}</td>
-                  </tr>
-                ))}
+                {flights.slice(0, 20).map((flight, idx) => {
+                  const departure = flight.departure || {};
+                  const arrival = flight.arrival || {};
+                  return (
+                    <tr key={idx}>
+                      <td>{flight.flight?.iata || 'N/A'}</td>
+                      <td>{departure.airport || 'N/A'} ({departure.iata || 'N/A'})</td>
+                      <td>{arrival.airport || 'N/A'} ({arrival.iata || 'N/A'})</td>
+                      <td>{flight.flight_status || 'N/A'}</td>
+                      <td>{departure.estimated ? new Date(departure.estimated).toLocaleString('zh-TW') : 'N/A'}</td>
+                      <td>{arrival.estimated ? new Date(arrival.estimated).toLocaleString('zh-TW') : 'N/A'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <p className="last-update">{lastFetchTime}</p>
